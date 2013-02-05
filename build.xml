@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<project name="android-query" default="package" basedir=".">
+	
+	<property name="VERSION">1.0</property>
+	
+	<path id="CLASSPATH">
+		<fileset dir="libs" includes="*.jar" />
+	</path>
+
+	<target name="clean">
+		<delete dir="target" />
+		<mkdir dir="target" />
+		<mkdir dir="target/classes" />
+	</target>
+
+	<target name="compile">
+		<javac destdir="target/classes" source="1.6" encoding="UTF-8">
+			<src path="src" />
+			<classpath refid="CLASSPATH" />
+		</javac>
+	</target>
+
+	<target name="package" depends="clean, compile">
+		<jar destfile="target/android-query-${VERSION}.jar" basedir="target/classes"></jar>
+	</target>
+
+</project>
