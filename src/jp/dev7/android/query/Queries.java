@@ -4,9 +4,13 @@ import java.util.Date;
 
 import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 import android.util.Pair;
 
 public class Queries {
+    public static int LOG_PRIORITY = Log.VERBOSE;
+    public static String LOG_TAG = "android-query";
+
     private Queries() {
     }
 
@@ -71,6 +75,8 @@ public class Queries {
                 result[i] = "1";
             } else if (values[i] == Boolean.FALSE) {
                 result[i] = "0";
+            } else if (values[i] instanceof Date) {
+                result[i] = "" + ((Date) values[i]).getTime();
             } else {
                 result[i] = "" + values[i];
             }
@@ -94,15 +100,66 @@ public class Queries {
         return new Query(table, columns);
     }
 
-    public static Query query(String table, String[] columns, Selection selection) {
+    public static Query query(String table, String[] columns,
+            Selection selection) {
         return new Query(table, columns, selection.exp, selection.args);
     }
 
-    public static long insert(SQLiteDatabase db, String table, Pair<String, Object>... pairs) {
+    public static long insert(SQLiteDatabase db, String table,
+            Pair<String, Object>... pairs) {
+        try {
+            final StringBuffer sql = new StringBuffer();
+            sql.append("INSERT INTO ");
+            sql.append(table);
+            sql.append(" (");
+            for (Pair<String, Object> pair : pairs) {
+                sql.append(pair.first);
+                sql.append(", ");
+            }
+            sql.delete(sql.length() - 2, sql.length());
+            sql.append(")");
+            sql.append(" VALUES ");
+            sql.append(" (");
+            for (Pair<String, Object> pair : pairs) {
+                sql.append("'" + pair.second + "'");
+                sql.append(", ");
+            }
+            sql.delete(sql.length() - 2, sql.length());
+            sql.append(")");
+            Log.println(LOG_PRIORITY, LOG_TAG, sql.toString());
+        } catch (Exception e) {
+            Log.e("android-query", "logging error", e);
+        }
         return db.insert(table, null, values(pairs));
     }
 
-    public static int update(SQLiteDatabase db, String table, Selection where, Pair<String, Object>... pairs) {
+    public static int update(SQLiteDatabase db, String table, Selection where,
+            Pair<String, Object>... pairs) {
+        try {
+            final StringBuffer sql = new StringBuffer();
+            sql.append("UPDATE ");
+            sql.append(table);
+            sql.append(" SET ");
+            for (Pair<String, Object> pair : pairs) {
+                sql.append(pair.first + " = " + "'" + pair.second + "'");
+                sql.append(", ");
+            }
+            sql.delete(sql.length() - 2, sql.length());
+            if (where != null) {
+                sql.append(" WHERE ");
+                String s = where.exp;
+                if (where.args != null) {
+                    for (String arg : where.args) {
+                        s = s.replaceFirst("\\?", "'" + arg + "'");
+                    }
+                }
+                sql.append(s);
+            }
+            Log.println(LOG_PRIORITY, LOG_TAG, sql.toString());
+        } catch (Exception e) {
+            Log.e("android-query", "logging error", e);
+        }
+
         if (where != null) {
             return db.update(table, values(pairs), where.exp, where.args);
         } else {
@@ -110,16 +167,68 @@ public class Queries {
         }
     }
 
-    public static int update(SQLiteDatabase db, String table, String whereClause, String[] whereArgs,
+    public static int update(SQLiteDatabase db, String table,
+            String whereClause, String[] whereArgs,
             Pair<String, Object>... pairs) {
+        try {
+            final StringBuffer sql = new StringBuffer();
+            sql.append("UPDATE ");
+            sql.append(table);
+            sql.append(" SET ");
+            for (Pair<String, Object> pair : pairs) {
+                sql.append(pair.first + " = " + "'" + pair.second + "'");
+                sql.append(", ");
+            }
+            sql.delete(sql.length() - 2, sql.length());
+            if (whereClause != null) {
+                sql.append(" WHERE ");
+                String s = whereClause;
+                if (whereArgs != null) {
+                    for (String arg : whereArgs) {
+                        s = s.replaceFirst("\\?", "'" + arg + "'");
+                    }
+                }
+                sql.append(s);
+            }
+            Log.println(LOG_PRIORITY, LOG_TAG, sql.toString());
+        } catch (Exception e) {
+            Log.e("android-query", "logging error", e);
+        }
         return db.update(table, values(pairs), whereClause, whereArgs);
     }
 
     public static int delete(SQLiteDatabase db, String table) {
+        try {
+            final StringBuffer sql = new StringBuffer();
+            sql.append("DELETE FROM ");
+            sql.append(table);
+            Log.println(LOG_PRIORITY, LOG_TAG, sql.toString());
+        } catch (Exception e) {
+            Log.e("android-query", "logging error", e);
+        }
         return db.delete(table, null, null);
     }
 
-    public static int delete(SQLiteDatabase db, String table, Selection selection) {
+    public static int delete(SQLiteDatabase db, String table,
+            Selection selection) {
+        try {
+            final StringBuffer sql = new StringBuffer();
+            sql.append("DELETE FROM ");
+            sql.append(table);
+            if (selection != null) {
+                sql.append(" WHERE ");
+                String s = selection.exp;
+                if (selection.args != null) {
+                    for (String arg : selection.args) {
+                        s = s.replaceFirst("\\?", "'" + arg + "'");
+                    }
+                }
+                sql.append(s);
+            }
+            Log.println(LOG_PRIORITY, LOG_TAG, sql.toString());
+        } catch (Exception e) {
+            Log.e("android-query", "logging error", e);
+        }
         return db.delete(table, selection.exp, selection.args);
     }
 
