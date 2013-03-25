@@ -64,6 +64,13 @@ public class Queries {
     }
 
     /**
+     * selectionへのエイリアス.
+     */
+    public static Selection where(String expression, Object... params) {
+        return selection(expression, params);
+    }
+
+    /**
      * Stringの配列を簡単に作る.
      */
     public static String[] strings(Object... values) {
